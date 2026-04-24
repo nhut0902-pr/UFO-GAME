@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+:root {
+  --neon: #00ff9d;
+  --bg: #0a0b0d;
+  --panel: #15171a;
+  --ink: #8e9299;
+}
+
+body {
+  background-color: var(--bg);
+  color: white;
+  font-family: var(--font-mono);
+}
+
+.hud-border {
+  border: 1px solid rgba(0, 255, 157, 0.2);
+}
+
+.terminal-card {
+  background: rgba(21, 23, 26, 0.9);
+  border-left: 4px solid var(--neon);
+}
+
+.stat-value {
+  font-size: 24px;
+  color: var(--neon);
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--ink);
+  letter-spacing: 2px;
+}

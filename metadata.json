@@ -1,0 +1,6 @@
+{
+  "name": "Nebula Tank: UFO Hunter",
+  "description": "A low-poly 3D UFO shooter game built with Three.js. Pilot a tank and defend the planet from an alien invasion.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

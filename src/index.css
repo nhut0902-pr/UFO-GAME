@@ -6,31 +6,37 @@
 }
 
 :root {
-  --neon: #00ff9d;
-  --bg: #0a0b0d;
-  --panel: #15171a;
-  --ink: #8e9299;
+  --neon: #00f0ff;
+  --accent: #ff007f;
+  --bg: #0a0b1e;
+  --panel: rgba(255, 255, 255, 0.05);
+  --ink: #cfd1d4;
 }
 
 body {
   background-color: var(--bg);
   color: white;
   font-family: var(--font-mono);
+  overflow: hidden;
 }
 
 .hud-border {
-  border: 1px solid rgba(0, 255, 157, 0.2);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .terminal-card {
-  background: rgba(21, 23, 26, 0.9);
-  border-left: 4px solid var(--neon);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 0 30px rgba(255, 0, 127, 0.1);
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 28px;
   color: var(--neon);
   font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
 .stat-label {

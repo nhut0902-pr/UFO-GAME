@@ -27,40 +27,56 @@ export default function App() {
   const MAX_MISSES = 5;
 
   return (
-    <div className="relative w-full h-screen bg-[#050505] text-white overflow-hidden font-sans">
+    <div className="relative w-full h-screen bg-[#0a0b1e] text-white overflow-hidden font-sans select-none">
       <AnimatePresence mode="wait">
         {gameState === 'menu' && (
           <motion.div
             key="menu"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0a0b0d]/90 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0a001e]/80 backdrop-blur-md"
           >
-            <div className="terminal-card p-8 flex flex-col items-center shadow-2xl max-w-lg">
-              <motion.h1 
-                className="text-5xl font-bold uppercase tracking-tighter mb-4 text-[#00ff9d]"
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', damping: 10 }}
+            <div className="terminal-card p-10 flex flex-col items-center shadow-[0_0_50px_rgba(255,0,127,0.2)] max-w-lg mx-4">
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="text-center"
               >
-                NEBULA TANK
-              </motion.h1>
-              <div className="text-[10px] mt-2 leading-relaxed text-[#8e9299] text-center mb-8 uppercase tracking-widest">
-                <Target size={14} className="inline mr-2 text-[#00ff9d]" /> STATUS: READY
+                <h1 className="text-6xl font-black italic tracking-tighter mb-2 text-transparent bg-clip-text bg-gradient-to-b from-[#00f0ff] to-[#ff007f]">
+                  NEBULA TANK
+                </h1>
+                <div className="h-1 w-24 bg-gradient-to-r from-[#00f0ff] to-[#ff007f] mx-auto mb-6" />
+              </motion.div>
+              
+              <div className="text-[11px] font-bold text-[#cfd1d4] text-center mb-8 uppercase tracking-[0.3em] flex items-center gap-3">
+                <Target size={16} className="text-[#00f0ff] animate-pulse" /> SYSTEM READY // V.2.0
               </div>
+
               <button
                 onClick={startGame}
-                className="hud-border px-8 py-4 bg-black/60 text-[#00ff9d] font-bold uppercase tracking-widest text-sm hover:bg-[#00ff9d]/20 transition-colors"
+                className="group relative px-12 py-5 overflow-hidden"
               >
-                <span className="flex items-center gap-2">
-                  <Play size={16} /> INITIALIZE SYSTEM
+                <div className="absolute inset-0 bg-[#ff007f] transform skew-x-12 group-hover:bg-[#00f0ff] transition-colors duration-300" />
+                <span className="relative flex items-center gap-3 text-white font-black uppercase italic tracking-tighter text-lg">
+                  <Play size={20} fill="white" /> START MISSION
                 </span>
               </button>
-              <div className="mt-8 text-[10px] text-[#8e9299] font-mono whitespace-pre text-left w-full border-t border-[#00ff9d]/20 pt-4">
-                {'>'} A / D OR ARROWS .. MOBILITY{'\n'}
-                {'>'} SPACE ............ KINETIC STRIKE
+
+              <div className="mt-10 grid grid-cols-2 gap-4 w-full border-t border-white/5 pt-6">
+                <div className="text-[9px] text-[#cfd1d4]/60 font-mono uppercase">
+                  [WSAD] MOVEMENT<br/>
+                  [SPACE] FIRE
+                </div>
+                <div className="text-[9px] text-right text-[#cfd1d4]/60 font-mono uppercase">
+                  [MOUSE] AIM<br/>
+                  [CLICK] FIRE
+                </div>
               </div>
+            </div>
+            
+            <div className="absolute bottom-8 text-[10px] text-[#ff007f] animate-bounce md:hidden font-bold tracking-widest px-4 text-center">
+              ROTATE DEVICE FOR BEST EXPERIENCE
             </div>
           </motion.div>
         )}
@@ -70,19 +86,19 @@ export default function App() {
             key="gameover"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0a0b0d]/90 backdrop-blur-md"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#1a0033]/90 backdrop-blur-xl"
           >
-            <div className="terminal-card p-8 flex flex-col items-center shadow-2xl min-w-[300px]">
-              <div className="text-red-500 mb-4 animate-pulse">
-                <Trophy size={48} />
+            <div className="terminal-card p-10 flex flex-col items-center shadow-[0_0_60px_rgba(0,240,255,0.2)] min-w-[320px]">
+              <Trophy size={64} className="text-[#00f0ff] mb-6 drop-shadow-[0_0_15px_rgba(0,240,255,0.5)]" />
+              <h2 className="text-4xl font-black italic tracking-tighter mb-2 text-[#ff007f]">SYSTEM FAILURE</h2>
+              <div className="text-xl font-mono text-[#00f0ff] mb-10 tracking-widest border-y border-[#00f0ff]/20 py-2 w-full text-center">
+                SCORE: {score.toLocaleString()}
               </div>
-              <h2 className="text-3xl font-bold uppercase mb-2 text-[#00ff9d]">MISSION COMPLETE</h2>
-              <div className="text-[10px] text-[#8e9299] mb-8 uppercase tracking-[0.2em] border-b border-[#00ff9d]/20 pb-4 w-full text-center">FINAL SCORE: {score}</div>
               <button
                 onClick={startGame}
-                className="hud-border px-8 py-3 bg-black/60 text-[#00ff9d] font-bold uppercase tracking-widest text-xs hover:bg-[#00ff9d]/20 transition-colors"
+                className="hud-border px-10 py-4 bg-white/5 text-[#00f0ff] font-black uppercase italic tracking-tighter text-sm hover:bg-[#00f0ff] hover:text-white transition-all shadow-[0_0_20px_rgba(0,240,255,0.2)]"
               >
-                REBOOT SEQUENCE
+                REBOOT CORE
               </button>
             </div>
           </motion.div>
@@ -99,51 +115,53 @@ export default function App() {
       </div>
 
       {gameState === 'playing' && (
-        <div className="absolute inset-0 z-40 pointer-events-none p-8 flex flex-col justify-between">
+        <div className="absolute inset-0 z-40 pointer-events-none p-4 md:p-8 flex flex-col justify-between">
           <div className="flex justify-between items-start">
-            <div className="terminal-card p-4 w-64 shadow-2xl hidden md:block">
-              <div className="stat-label">System Status</div>
-              <div className="text-[9px] mt-2 leading-relaxed text-[#8e9299]">
-                {'>'} RADAR ACTIVE<br/>
-                {'>'} KINETIC CANNONS HOT<br/>
-                {'>'} ENGAGING HOSTILES
+            <div className="terminal-card p-4 w-48 shadow-lg hidden sm:block bg-black/20 backdrop-blur-sm">
+              <div className="stat-label text-[9px] text-[#ff007f]">Pilot: Agent-01</div>
+              <div className="text-[9px] mt-2 leading-relaxed text-[#cfd1d4] font-mono">
+                {'>'} FUEL NOMINAL<br/>
+                {'>'} SHIELDS ACTIVE<br/>
+                {'>'} TURRET: ONLINE
               </div>
             </div>
-            <div className="flex gap-4">
-              <div className="bg-black/60 p-3 hud-border min-w-[120px] text-right">
-                <div className="stat-label">Combats</div>
-                <div className="stat-value tracking-tighter">{score}</div>
+            
+            <div className="flex flex-col items-end gap-2">
+              <div className="bg-white/5 p-4 hud-border min-w-[140px] text-right shadow-xl">
+                <div className="stat-label text-[9px] text-[#00f0ff]">Kills Core</div>
+                <div className="stat-value tracking-tighter text-4xl">{score}</div>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-center mb-12 opacity-40">
-             <div className="w-12 h-12 border-2 border-[#00ff9d] rounded-full flex items-center justify-center">
-               <div className="w-1 h-1 bg-[#00ff9d]"></div>
+          <div className="flex justify-center md:opacity-20 opacity-40">
+             <div className="w-16 h-16 border-2 border-[#00f0ff] rounded-full flex items-center justify-center relative">
+               <div className="absolute inset-0 border border-[#ff007f] rounded-full animate-ping opacity-20"></div>
+               <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
              </div>
           </div>
 
-          <div className="flex justify-between items-end">
-            <div className="terminal-card p-4 w-72">
-               <div className="stat-label">Hull Integrity</div>
-               <div className="flex items-center gap-2 mt-2">
-                 <div className="w-full bg-gray-800 h-2">
+          <div className="flex justify-between items-end gap-4">
+            <div className="terminal-card p-4 w-full max-w-[280px] bg-black/20">
+               <div className="stat-label text-[9px] text-[#00f0ff]">Shield Integrity</div>
+               <div className="flex items-center gap-3 mt-2">
+                 <div className="w-full bg-white/10 h-3 rounded-full overflow-hidden border border-white/5">
                    <div 
-                     className="bg-[#00ff9d] h-full transition-all duration-300"
+                     className="bg-gradient-to-r from-[#00f0ff] to-[#ff007f] h-full transition-all duration-500 shadow-[0_0_10px_rgba(0,240,255,0.5)]"
                      style={{ width: `${Math.max(0, ((MAX_MISSES - misses) / MAX_MISSES) * 100)}%` }}
                    ></div>
                  </div>
-                 <span className="text-[10px] text-[#00ff9d]">{Math.max(0, ((MAX_MISSES - misses) / MAX_MISSES) * 100).toFixed(0)}%</span>
+                 <span className="text-[11px] font-bold text-white min-w-[36px]">{Math.max(0, ((MAX_MISSES - misses) / MAX_MISSES) * 100).toFixed(0)}%</span>
                </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              {misses > 0 && <div className="bg-red-900/20 border border-red-500/30 px-4 py-2 text-red-500 text-[10px] animate-pulse">WARNING: HOSTILE PASS</div>}
-              <div className="flex gap-2 justify-end">
+            <div className="flex flex-col gap-2 scale-75 sm:scale-100 origin-bottom-right">
+              {misses > 0 && <div className="bg-[#ff007f]/20 border border-[#ff007f]/50 px-4 py-1 text-[#ff007f] text-[9px] font-black italic tracking-tighter animate-pulse text-right">HULL BREACH IMMINENT</div>}
+              <div className="flex gap-1.5 justify-end">
                 {[...Array(MAX_MISSES)].map((_, i) => (
                   <div 
                     key={i} 
-                    className={`w-8 h-2 transition-colors duration-500 ${i < (MAX_MISSES - misses) ? 'bg-[#00ff9d]' : 'bg-gray-700'}`}
+                    className={`w-6 h-1.5 rounded-full shadow-sm transition-all duration-500 ${i < (MAX_MISSES - misses) ? 'bg-[#00f0ff] shadow-[0_0_8px_rgba(0,240,255,0.4)]' : 'bg-white/10'}`}
                   />
                 ))}
               </div>

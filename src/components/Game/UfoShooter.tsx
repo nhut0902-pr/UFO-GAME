@@ -54,36 +54,51 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
 
     // --- INITIALIZATION ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0b0d);
-    scene.fog = new THREE.Fog(0x0a0b0d, 20, 200);
+    scene.background = new THREE.Color(0x1a0033);
+    scene.fog = new THREE.Fog(0x1a0033, 40, 250);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
+    renderer.setPixelRatio(window.devicePixelRatio);
     containerRef.current.appendChild(renderer.domElement);
 
     // --- LIGHTING ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(20, 40, 20);
+    const dirLight = new THREE.DirectionalLight(0xff00ff, 1.2);
+    dirLight.position.set(20, 50, 20);
     dirLight.castShadow = true;
     scene.add(dirLight);
 
+    const hemiLight = new THREE.HemisphereLight(0xff7c00, 0x00f0ff, 0.4);
+    scene.add(hemiLight);
+
     // --- ENVIRONMENT ---
-    const groundGeo = new THREE.PlaneGeometry(300, 300);
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8, metalness: 0.2 });
+    const groundGeo = new THREE.PlaneGeometry(350, 350);
+    const groundMat = new THREE.MeshStandardMaterial({ 
+      color: 0x0d0d1a, 
+      roughness: 0.1, 
+      metalness: 0.8 
+    });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    const grid = new THREE.GridHelper(300, 100, 0x00ff9d, 0x15171a);
-    grid.material.opacity = 0.2;
+    const grid = new THREE.GridHelper(350, 50, 0xff007f, 0x1a0033);
+    grid.material.opacity = 0.4;
     grid.material.transparent = true;
     scene.add(grid);
+
+    // Glow Sun
+    const sunGeo = new THREE.SphereGeometry(100, 32, 32);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xff7c00 });
+    const sun = new THREE.Mesh(sunGeo, sunMat);
+    sun.position.set(0, -20, -400); 
+    scene.add(sun);
 
     // Stars
     const starCount = 2000;
@@ -106,7 +121,7 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
     
     // Base
     const baseGeo = new THREE.BoxGeometry(2, 0.8, 3);
-    const baseMat = new THREE.MeshStandardMaterial({ color: 0x1a1c24, flatShading: true });
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, roughness: 0.2, metalness: 0.7 });
     const base = new THREE.Mesh(baseGeo, baseMat);
     base.position.y = 0.4;
     base.castShadow = true;
@@ -114,7 +129,7 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
 
     // Turret
     const turretGeo = new THREE.BoxGeometry(1.2, 0.6, 1.2);
-    const turretMat = new THREE.MeshStandardMaterial({ color: 0x0a0b0d, flatShading: true });
+    const turretMat = new THREE.MeshStandardMaterial({ color: 0xff007f, roughness: 0.2, metalness: 0.7 });
     const turret = new THREE.Mesh(turretGeo, turretMat);
     turret.position.y = 1.1;
     turret.castShadow = true;
@@ -122,7 +137,7 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
 
     // Cannon
     const cannonGeo = new THREE.BoxGeometry(0.3, 0.3, 2);
-    const cannonLoaderMat = new THREE.MeshStandardMaterial({ color: 0x00ff9d });
+    const cannonLoaderMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.5 });
     const cannon = new THREE.Mesh(cannonGeo, cannonLoaderMat);
     cannon.position.set(0, 1.1, -1.5);
     cannon.castShadow = true;
@@ -274,7 +289,7 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
       // Shooting
       if (tg.input.isFiring && time - tg.lastShotTime > 0.15) {
         const bulletGeo = new THREE.BoxGeometry(0.2, 0.2, 1);
-        const bulletMat = new THREE.MeshBasicMaterial({ color: 0x00ff9d });
+        const bulletMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const bullet = new THREE.Mesh(bulletGeo, bulletMat);
         
         bullet.position.copy(tg.tank.position);
@@ -286,6 +301,8 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
         
         bullet.position.add(dir.clone().multiplyScalar(2)); // spawn slightly ahead
         bullet.userData.dir = dir;
+        
+        // Bullet light trail effect could be added here
         
         tg.scene.add(bullet);
         tg.bullets.push(bullet);
@@ -389,11 +406,17 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
 
   // --- TOUCH HANDLERS (Mobile overlay) ---
   const handlePointerDown = (e: React.PointerEvent) => {
-      if (!isMobile) return;
       const g = gameRef.current;
       if (!g) return;
 
-      if (e.clientX < window.innerWidth / 2 && g.touch.leftId === -1) {
+      // Use setPointerCapture to ensure move events are tracked even outside the element
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+      // Left side: Joystick (Touch only usually, but let's check for proximity to a virtual joystick if we want)
+      // For now, let's keep joystick only if it feels like touch (or just always allow it on left third)
+      const joystickAreaWidth = window.innerWidth * 0.35;
+      
+      if (e.pointerType === 'touch' && e.clientX < joystickAreaWidth && g.touch.leftId === -1) {
           g.touch.leftId = e.pointerId;
           g.touch.startX = e.clientX;
           g.touch.startY = e.clientY;
@@ -405,7 +428,8 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
               base.style.top = `${e.clientY}px`;
               knob.style.transform = `translate(-50%, -50%)`;
           }
-      } else if (e.clientX >= window.innerWidth / 2 && g.touch.rightId === -1) {
+      } else if (g.touch.rightId === -1) {
+          // Right side or anywhere else: Camera Look
           g.touch.rightId = e.pointerId;
           g.touch.lastRightX = e.clientX;
           g.touch.lastRightY = e.clientY;
@@ -413,7 +437,6 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-      if (!isMobile) return;
       const g = gameRef.current;
       if (!g) return;
 
@@ -421,7 +444,7 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
           const dx = e.clientX - g.touch.startX;
           const dy = e.clientY - g.touch.startY;
           const dist = Math.hypot(dx, dy);
-          const maxDist = 40;
+          const maxDist = 50;
           const angle = Math.atan2(dy, dx);
           
           const cappedDist = Math.min(dist, maxDist);
@@ -437,14 +460,14 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
           g.touch.lastRightX = e.clientX;
           g.touch.lastRightY = e.clientY;
 
-          g.input.yaw -= dx * 0.005;
-          g.input.pitch -= dy * 0.005;
+          const sensitivity = 0.005;
+          g.input.yaw -= dx * sensitivity;
+          g.input.pitch -= dy * sensitivity;
           g.input.pitch = THREE.MathUtils.clamp(g.input.pitch, -Math.PI/2 + 0.1, Math.PI/2 - 0.1);
       }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-      if (!isMobile) return;
       const g = gameRef.current;
       if (!g) return;
 
@@ -456,26 +479,28 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
       } else if (e.pointerId === g.touch.rightId) {
           g.touch.rightId = -1;
       }
+      
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
   // Helper: Create UFO Model
   function createUFO() {
     const group = new THREE.Group();
     const bodyGeo = new THREE.CylinderGeometry(2, 2, 0.5, 8);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8e9299, metalness: 0.8, roughness: 0.2, flatShading: true });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, metalness: 0.9, roughness: 0.1, flatShading: true });
     const body = new THREE.Mesh(bodyGeo, bodyMat);
     body.castShadow = true;
     group.add(body);
 
     const cockpitGeo = new THREE.SphereGeometry(0.8, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-    const cockpitMat = new THREE.MeshPhongMaterial({ color: 0x1a1c24, transparent: true, opacity: 0.8 });
+    const cockpitMat = new THREE.MeshPhongMaterial({ color: 0xff007f, transparent: true, opacity: 0.6, shininess: 100 });
     const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
     cockpit.position.y = 0.2;
     group.add(cockpit);
 
     for (let i = 0; i < 8; i++) {
-        const lightGeo = new THREE.SphereGeometry(0.1, 4, 4);
-        const lightMat = new THREE.MeshBasicMaterial({ color: 0xff00c1 });
+        const lightGeo = new THREE.SphereGeometry(0.12, 4, 4);
+        const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const light = new THREE.Mesh(lightGeo, lightMat);
         const angle = (i / 8) * Math.PI * 2;
         light.position.set(Math.cos(angle) * 1.8, -0.1, Math.sin(angle) * 1.8);
@@ -487,21 +512,21 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
   // Helper: Simple Particle Explosion
   function spawnExplosion(pos: THREE.Vector3, scene: THREE.Scene) {
     const particleCount = 20;
-    const particles: THREE.Mesh[] = [];
     for (let i = 0; i < particleCount; i++) {
-        const pGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-        const pMat = new THREE.MeshBasicMaterial({ color: 0x00ff9d });
+        const pGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+        const pMat = new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? 0xff007f : 0x00f0ff });
         const p = new THREE.Mesh(pGeo, pMat);
         p.position.copy(pos);
-        const velocity = new THREE.Vector3((Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5);
+        const velocity = new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2);
         scene.add(p);
-        particles.push(p);
 
         let life = 1.0;
         const tick = () => {
-            life -= 0.05;
+            life -= 0.04;
             p.position.add(velocity);
             p.scale.set(life, life, life);
+            p.rotation.x += 0.1;
+            p.rotation.y += 0.1;
             if (life > 0) requestAnimationFrame(tick);
             else scene.remove(p);
         };
@@ -521,21 +546,24 @@ export default function UfoShooter({ isPaused, onGameOver, onScoreUpdate, onMiss
       />
       {/* Mobile Controls Overlay */}
       {isMobile && !isPaused && (
-        <div className="absolute inset-0 pointer-events-none z-50">
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {/* Joystick Area */}
           <div 
             id="joystick-base" 
-            className="absolute w-24 h-24 bg-[#0a0b0d]/50 border-2 border-[#00ff9d]/30 rounded-full shadow-[0_0_15px_rgba(0,255,157,0.2)]"
+            className="absolute w-24 h-24 bg-white/5 border-2 border-[#00f0ff]/30 rounded-full shadow-[0_0_20px_rgba(0,240,255,0.2)]"
             style={{ display: 'none', transform: 'translate(-50%, -50%)' }}
           >
             <div 
               id="joystick-knob" 
-              className="absolute w-10 h-10 bg-[#00ff9d]/50 rounded-full top-1/2 left-1/2 shadow-[0_0_10px_rgba(0,255,157,0.5)]"
+              className="absolute w-10 h-10 bg-[#00f0ff]/40 rounded-full top-1/2 left-1/2 shadow-[0_0_15px_rgba(0,240,255,0.4)]"
               style={{ transform: 'translate(-50%, -50%)' }}
             />
           </div>
+          
+          {/* Fire Button - Positioned specifically for landscape and portrait */}
           <button
             id="fire-button"
-            className="absolute bottom-16 right-16 w-20 h-20 bg-[#00ff9d]/10 border-2 border-[#00ff9d] rounded-full flex items-center justify-center pointer-events-auto active:bg-[#00ff9d]/40 touch-none select-none text-[#00ff9d] font-bold shadow-[0_0_20px_rgba(0,255,157,0.3)] transition-colors"
+            className="absolute bottom-6 right-6 sm:bottom-12 sm:right-12 w-20 h-20 sm:w-24 sm:h-24 bg-[#ff007f]/10 border-2 border-[#ff007f] rounded-full flex items-center justify-center pointer-events-auto active:bg-[#ff007f]/40 touch-none select-none text-[#ff007f] font-black italic tracking-tighter text-lg sm:text-xl shadow-[0_0_30px_rgba(255,0,127,0.3)] transition-all hover:scale-105 active:scale-95"
             onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); if (gameRef.current) gameRef.current.input.isFiring = true; }}
             onPointerUp={(e) => { e.preventDefault(); e.stopPropagation(); if (gameRef.current) gameRef.current.input.isFiring = false; }}
             onPointerLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (gameRef.current) gameRef.current.input.isFiring = false; }}
